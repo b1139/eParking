@@ -1,0 +1,17 @@
+# Django
+*.log
+*.pyc
+__pycache__/
+db.sqlite3
+
+# Environments
+.env
+.venv
+venv
+
+# Translations
+*.mo
+
+# Git
+.idea/*.iws
+.idea/workspace.xml
