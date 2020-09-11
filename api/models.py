@@ -1,7 +1,15 @@
 from django.db import models
 
-# Create your models here.
-from api.utils import AbstractTableMeta
+
+class AbstractTableMeta(models.Model):
+    """
+    Table meta data which will be used by all the tables in the system
+    """
+    created_at = models.DateField(auto_now_add=True)
+    updated_at = models.DateField(auto_now=True)
+
+    class Meta:
+        abstract = True
 
 
 class Vehicle(AbstractTableMeta, models.Model):
@@ -12,7 +20,7 @@ class Vehicle(AbstractTableMeta, models.Model):
 
 
 class Slot(AbstractTableMeta, models.Model):
-    slot_no = models.IntegerField()
+    slot_no = models.IntegerField(unique=True)
     parked_vehicle = models.OneToOneField(Vehicle, on_delete=models.SET_NULL, null=True)
 
     class Meta:

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Vehicle, Slot
+from .utils import get_avilable_slots
 
 
 class VehicleSerializer(serializers.ModelSerializer):
@@ -9,7 +10,7 @@ class VehicleSerializer(serializers.ModelSerializer):
 
 
 class SlotSerializer(serializers.ModelSerializer):
-    vehicle = VehicleSerializer()
+    vehicle = VehicleSerializer(partial=True, required=False)
 
     class Meta:
         model = Slot
@@ -18,3 +19,9 @@ class SlotSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'vehicle': {'write_only': True},
         }
+
+    def create(self, validated_data):
+        vehicle_data = validated_data.pop('vehicle')
+        vehicle = Vehicle.objects.create(**vehicle_data)
+        slot = Slot.objects.create(parked_vehicle=vehicle, slot_no=get_avilable_slots().pop())
+        return slot
