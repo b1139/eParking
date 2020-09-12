@@ -1,4 +1,6 @@
 from decouple import config
+from pytimeparse.timeparse import timeparse
+from rest_framework import throttling
 
 from api.models import Slot
 
@@ -27,3 +29,17 @@ def get_avilable_slots():
     # Subtraction of two sets will result in available slots {1, 2}-{1} = {1}
     available_slots = all_slots - booked_slots
     return available_slots
+
+
+class EParkingThrottle(throttling.AnonRateThrottle):
+    def parse_rate(self, rate):
+        """
+        Given the request rate string, return a two tuple of:
+        <allowed number of requests>, <period of time in seconds>
+        """
+        if rate is None:
+            return (None, None)
+        num, period = rate.split('/')
+        num_requests = int(num)
+        duration = timeparse(period)
+        return num_requests, duration
