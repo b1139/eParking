@@ -11,12 +11,12 @@ class ParkViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.Destr
     """
     Park management class
     1. Parks a Vehicle
-    2. Uparks a Vehicle
+    2. Unparks a Vehicle
     """
 
     queryset = Slot.objects.all()
     serializer_class = SlotSerializer
-    lookup_fields = "slot_no"
+    lookup_field = "slot_no"
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
