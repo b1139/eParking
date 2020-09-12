@@ -1,29 +1,39 @@
-from decouple import config
-from rest_framework import viewsets
-from rest_framework.decorators import action
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import mixins
+from rest_framework import viewsets, generics
 from rest_framework.response import Response
 
 from .models import Slot
-from .serializers import SlotSerializer
-from .utils import is_full
+from .serializers import SlotSerializer, ParkInfoSerializer
 
 
-class ParkViewSet(viewsets.ModelViewSet):
+class ParkViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.DestroyModelMixin):
+    """
+    Park management class
+    1. Parks a Vehicle
+    2. Uparks a Vehicle
+    """
+
     queryset = Slot.objects.all()
     serializer_class = SlotSerializer
+    lookup_fields = "slot_no"
 
-    @action(methods=["POST"], detail=False)
-    def park(self, request):
-        """
-        Parks a vehicle - car/bike/cycle/scooter
-        :param request:
-        :return: Slot No Assigned for requested Vehicle
-        """
-        # check whether all slot are full or not
-        if is_full():
-            return Response({"message": "No More Slots Available For Parking!!!"})
-        else:
-            serializer = self.serializer_class(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-            return Response(serializer.data)
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        msg = f"Slot {instance.slot_no} has no car parked"
+        if instance.parked_vehicle:
+            instance.parked_vehicle.delete()
+            msg = f"Slot {instance.slot_no} is available for parking now"
+        return Response({"message": msg})
+
+
+class ParkInfoViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+    """
+    1. Lists the list of slots available
+    2. List by the slot_no
+    3. List by parked_vehicle__registration_no (vehicle registration no)
+    """
+    queryset = Slot.objects.all()
+    serializer_class = ParkInfoSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['slot_no', 'parked_vehicle__registration_no']
